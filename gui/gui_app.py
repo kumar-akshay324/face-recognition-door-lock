@@ -1,5 +1,5 @@
 import sys
-sys.path.remove('/home/akshay/catkin_ws/devel/lib/python3/dist-packages')
+# sys.path.remove('/home/akshay/catkin_ws/devel/lib/python3/dist-packages')
 sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 
 import cv2
@@ -41,11 +41,14 @@ class App(QWidget):
 		self.height = 840
 		self.margin = 10
 		self.initUI()
-		self.connectAddNewFaceButton()
+		self.connectAddNewFaceButton(self.printNothing)
 
 	@pyqtSlot(QImage)
 	def setImage(self, image):
 		self.label.setPixmap(QPixmap.fromImage(image))
+
+	def printNothing(self):
+		print ("Clicked")
 
 	def initUI(self):
 		self.setWindowTitle(self.title)
