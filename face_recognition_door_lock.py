@@ -1,3 +1,5 @@
+import face_recognition
+
 from motor_contro.servo_control import ServoMotor
 
 class FaceRecognitionDoorLock:

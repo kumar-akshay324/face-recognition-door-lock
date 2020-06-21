@@ -26,5 +26,8 @@ install-pyqt5-rpi:
 run-demo:
 	@python3 face_recognition_src/face_recog_example.py
 
+run:
+	@python3 main.py
+
 view-gui:
 	@python3 gui/gui_app.py
