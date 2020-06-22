@@ -1,7 +1,4 @@
 import sys
-# sys.path.remove('/home/akshay/catkin_ws/devel/lib/python3/dist-packages')
-# sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-
 import cv2
 # from PyQt5.QtWidgets import  QWidget, QLabel, QApplication
 # from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
@@ -16,10 +13,11 @@ class Thread(QThread):
 	def run(self):
 		cap = cv2.VideoCapture(0)
 		while True:
-			ret, frame = cap.read()
+			ret, image_frame = cap.read()
 			if ret:
 				# https://stackoverflow.com/a/55468544/6622587
-				rgbImage = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+				image_frame, creds = self.face_recognizer_method(image_frame)
+				rgbImage = cv2.cvtColor(image_frame, cv2.COLOR_BGR2RGB)
 				h, w, ch = rgbImage.shape
 				bytesPerLine = ch * w
 				convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
@@ -30,7 +28,10 @@ class Thread(QThread):
 		self.width = width
 		self.height = height
 
-class App(QWidget):
+	def setFaceRecognizerMethod(self, incoming_face_recognizer_method):
+		self.face_recognizer_method = incoming_face_recognizer_method
+
+class QWidgetApplication(QWidget):
 	def __init__(self):
 		super().__init__()
 		self.title = 'PyQt5 Video'
@@ -80,10 +81,10 @@ class App(QWidget):
 
 		self.setLayout(vbox)
 
-		th = Thread(self)
-		th.configure(self.width-self.margin*2, int((self.width-self.margin*2) /1.33))
-		th.changePixmap.connect(self.setImage)
-		th.start()
+		self.thread_object = Thread(self)
+		self.thread_object.configure(self.width-self.margin*2, int((self.width-self.margin*2) /1.33))
+		self.thread_object.changePixmap.connect(self.setImage)
+		self.thread_object.start()
 		self.show()
 
 	def displayUpdates(self, input_text):
@@ -95,7 +96,11 @@ class App(QWidget):
 	def connectAddNewFaceButton(self, incoming_object_function):
 		self.add_new_face_button.clicked.connect(incoming_object_function)
 
+	def attachFaceRecognizerObject(self, incoming_face_recognizer_object):
+		self.face_recognizer_object = incoming_face_recognizer_object
+		self.thread_object.setFaceRecognizerMethod(self.face_recognizer_object.runFaceRecognizer)
+
 if __name__ == '__main__':
 	app = QApplication(sys.argv)
-	ex = App()
+	ex = QWidgetApplication()
 	sys.exit(app.exec_())
