@@ -12,6 +12,7 @@ install-pyqt5-rpi:
 	python3 configure.py
 	make 
 	sudo make install
+    cd ../
 
 	# Install PyQt5
 	pip3 install PyQt-builder
@@ -23,11 +24,5 @@ install-pyqt5-rpi:
 	make 
 	sudo make install
 
-run-demo:
-	@python3 src/face_recog_example.py
-
-run-temp:
-	@python3 src/face_recognition_temp.py
-
-view-gui:
-	@python3 gui/gui_app.py
+run:
+	@python3 src/face_recognizer.py

@@ -12,8 +12,14 @@ class ServoMotor:
 
     def setAngle(self, angle):
         duty = angle / 18 + 2
-        GPIO.output(03, True)
+        GPIO.output(3, True)
         pwm.ChangeDutyCycle(duty)
         time.sleep(1)
-        GPIO.output(03, False)
+        GPIO.output(3, False)
         pwm.ChangeDutyCycle(0)
+
+    def lockDoor(self):
+        self.setAngle(90)
+    
+    def unlockDoor(self):
+        self.setAngle(0)

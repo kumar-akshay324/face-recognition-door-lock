@@ -16,6 +16,9 @@ sudo apt-get -y install cmake
 pip3 install face_recognition
 pip3 install opencv-contrib-python==4.1.0.25
 
+# Install RPi support in Virtual Environment
+pip3 install RPi.GPIO
+
 # Install Support Libraries
 sudo apt-get install -y git libgtk2.0-dev pkg-config libavcodec-dev
 sudo apt-get install -y libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev

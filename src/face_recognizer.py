@@ -2,6 +2,7 @@ import face_recognition
 import cv2, os, sys
 import numpy as np
 from gui_app import QWidgetApplication
+from servo_motor import ServoMotor
 
 from PyQt5.QtGui import QImage, QPixmap
 
@@ -19,6 +20,10 @@ class FaceRecognizer:
         folder_abs = os.getcwd() + os.path.sep + "saved_images"
         print ("Making Encodings for folder: {}".format(folder_abs))
         for image_file in os.listdir(folder_abs):
+
+            if image_file[0] == ".":
+                continue
+
             face_identity = image_file.split(".")[0]
             print ("\nFor file: {}".format(image_file))
 
@@ -73,7 +78,7 @@ class FaceRecognizer:
                 name = self.known_face_names[best_match_idx]
 
             self.recognized_face_names.append(name)
-            if name == "Unknown":
+            if name != "Unknown":
                 credentials_confirmed = True
 
         self.displayNamesInImage(incoming_image_frame)
@@ -92,13 +97,17 @@ class FaceRecognizer:
             cv2.rectangle(incoming_image_frame, (left_loc, top_loc), (right_loc, bottom_loc), (0, 0, 255), 2)
 
             # Write the name label for the image
-            cv2.rectangle(incoming_image_frame, (left_loc, bottom_loc - 50), (right_loc, bottom_loc), (0, 0, 255), cv2.FILLED)
-            cv2.putText(incoming_image_frame, recognized_face_name, (left_loc + 6, bottom_loc - 6), cv2.FONT_ITALIC, 1.0, (255, 255, 255), 1)
+            cv2.putText(incoming_image_frame, recognized_face_name, (left_loc + 6, bottom_loc - 6), cv2.FONT_ITALIC, 1.0, (0, 0, 255), 1)
 
 if __name__ == "__main__":
     qt_app = QApplication(sys.argv)
 
     face_recognizer_object = FaceRecognizer()
+
+    servo_motor_object = ServoMotor()
+
     gui_app_object = QWidgetApplication()
     gui_app_object.attachFaceRecognizerObject(face_recognizer_object)
+    gui_app_object.attachServoMotorObject(servo_motor_object)
+
     sys.exit(qt_app.exec_())

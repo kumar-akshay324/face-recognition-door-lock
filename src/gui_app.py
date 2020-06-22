@@ -1,7 +1,5 @@
 import sys
 import cv2
-# from PyQt5.QtWidgets import  QWidget, QLabel, QApplication
-# from PyQt5.QtCore import QThread, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap
 
 from PyQt5.QtWidgets import *
@@ -13,14 +11,25 @@ class Thread(QThread):
 	def run(self):
 		cap = cv2.VideoCapture(0)
 		while True:
-			ret, image_frame = cap.read()
-			if ret:
-				# https://stackoverflow.com/a/55468544/6622587
-				image_frame, creds = self.face_recognizer_method(image_frame)
-				rgbImage = cv2.cvtColor(image_frame, cv2.COLOR_BGR2RGB)
-				h, w, ch = rgbImage.shape
-				bytesPerLine = ch * w
-				convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
+			return_value, image_frame = cap.read()
+			if return_value:
+				# Run the face detector
+				image_frame, result = self.face_recognizer_method(image_frame)
+
+				# Update the status based on the result
+				self.line_edit_method(result)
+
+				# Execute the motor control action
+				if result == True:
+					self.servo_motor_object.unlockDoor()
+				else:
+					self.servo_motor_object.lockDoor()
+
+				# https://stackoverflow.com/a/55468544/6622587 For display to Qt
+				rgb_image = cv2.cvtColor(image_frame, cv2.COLOR_BGR2RGB)
+				height, width, channels = rgb_image.shape
+				bytes_per_line = channels * width
+				convertToQtFormat = QImage(rgb_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
 				p = convertToQtFormat.scaled(self.width, self.height, Qt.KeepAspectRatio)
 				self.changePixmap.emit(p)
 
@@ -31,25 +40,28 @@ class Thread(QThread):
 	def setFaceRecognizerMethod(self, incoming_face_recognizer_method):
 		self.face_recognizer_method = incoming_face_recognizer_method
 
+	def setLineDisplayMethod(self, incoming_line_edit_method):
+		self.line_edit_method = incoming_line_edit_method
+
+	def setServoMotorObject(self, incoming_servo_motor_object):
+		self.servo_motor_object = incoming_servo_motor_object
+
 class QWidgetApplication(QWidget):
 	def __init__(self):
 		super().__init__()
 		self.title = 'PyQt5 Video'
 		self.left = 100
 		self.top = 10
-		self.width = 1024
+		self.width = 1400
 
-		self.height = 840
+		self.height = 1140
 		self.margin = 10
 		self.initUI()
-		self.connectAddNewFaceButton(self.printNothing)
+		# self.info_text_box(self.printNothing)
 
 	@pyqtSlot(QImage)
 	def setImage(self, image):
 		self.label.setPixmap(QPixmap.fromImage(image))
-
-	def printNothing(self):
-		print ("Clicked")
 
 	def initUI(self):
 		self.setWindowTitle(self.title)
@@ -70,35 +82,28 @@ class QWidgetApplication(QWidget):
 		vbox.addStretch()
 		vbox.addWidget(self.info_text_box)
 
-		hbox = QHBoxLayout()
-
-		self.add_new_face_button = QPushButton("Add New Face")
-		hbox.addWidget(self.add_new_face_button)
-		self.unlock_button = QPushButton("Unlock")
-		hbox.addWidget(self.unlock_button)
-
-		vbox.addLayout(hbox)
-
 		self.setLayout(vbox)
 
 		self.thread_object = Thread(self)
 		self.thread_object.configure(self.width-self.margin*2, int((self.width-self.margin*2) /1.33))
 		self.thread_object.changePixmap.connect(self.setImage)
+		self.thread_object.setLineDisplayMethod(self.displayUpdates)
 		self.thread_object.start()
 		self.show()
 
-	def displayUpdates(self, input_text):
-		self.info_text_box.setText(input_text)
-
-	def printClicked(self):
-		print ("Button Clicked")
-
-	def connectAddNewFaceButton(self, incoming_object_function):
-		self.add_new_face_button.clicked.connect(incoming_object_function)
+	def displayUpdates(self, input_status):
+		if input_status == True:
+			self.info_text_box.setText("Face ID Found, Unlocking Door!")
+		else:
+			self.info_text_box.setText("No face ID found")
 
 	def attachFaceRecognizerObject(self, incoming_face_recognizer_object):
 		self.face_recognizer_object = incoming_face_recognizer_object
 		self.thread_object.setFaceRecognizerMethod(self.face_recognizer_object.runFaceRecognizer)
+
+	def attachServoMotorObject(self, incoming_servo_motor_object):
+		self.servo_motor_object = incoming_servo_motor_object
+		self.thread_object.setServoMotorObject(self.servo_motor_object)
 
 if __name__ == '__main__':
 	app = QApplication(sys.argv)

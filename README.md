@@ -3,7 +3,6 @@ Repository to implement a Face Recognition based door lock/unlock system using R
 
 ## Install all support packages and libraries
 
-* Install Python 3.6 using `chmod a+x install_python36.sh && ./install_python36.sh`
+* Install Python 3.7 and all other dependencies using `make install-deps`
 
-* Install all libraries through pip
-    *   
+* Run the project using `make run` 
